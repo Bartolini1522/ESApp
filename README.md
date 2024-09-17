@@ -45,6 +45,7 @@
      ```
 
 3. **Esecuzione dell'app**:
+   - Clona il repository
    - Posizionati nella cartella principale dell'app tramite il terminale.
    - Esegui il comando:
      ```
