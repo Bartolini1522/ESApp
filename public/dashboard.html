@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Utente</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <h1>La tua Dashboard</h1>
+
+    <h2>I tuoi Obiettivi</h2>
+    <ul id="goalsList"></ul>
+
+    <!-- Pulsante di Logout -->
+    <button id="logoutBtn">Logout</button>
+
+    <script>
+        // Carica gli obiettivi dell'utente loggato
+        function loadUserGoals() {
+            fetch('/api/users/me/obiettivi', {
+                method: 'GET',
+                credentials: 'include' // Include i cookie di sessione
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Obiettivi caricati:', data); // Log per verificare i dati
+                const goalsList = document.getElementById('goalsList');
+                goalsList.innerHTML = ''; // Pulisci la lista
+                if (data.length === 0) {
+                    goalsList.innerHTML = '<li>Nessun obiettivo trovato.</li>';
+                } else {
+                    data.forEach(goal => {
+                        const listItem = document.createElement('li');
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.checked = goal.stato === 'completato';
+                        checkbox.addEventListener('change', function () {
+                            updateGoalStatus(goal.id, this.checked ? 'completato' : 'non completato');
+                        });
+                        listItem.appendChild(checkbox);
+                        listItem.appendChild(document.createTextNode(`${goal.nome_obiettivo} - ${goal.stato}`));
+                        goalsList.appendChild(listItem);
+                    });
+                }
+            })
+            .catch(error => console.error('Errore durante il caricamento degli obiettivi:', error));
+        }
+
+        // Aggiorna lo stato di un obiettivo
+        function updateGoalStatus(goalId, newStatus) {
+            fetch(`/api/obiettivi/${goalId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include', // Include i cookie di sessione
+                body: JSON.stringify({ stato: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Stato obiettivo aggiornato!');
+                loadUserGoals(); // Ricarica gli obiettivi
+            })
+            .catch(error => console.error('Errore:', error));
+        }
+
+        // Funzione per fare il logout
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include' // Include i cookie di sessione
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/login'; // Reindirizza alla pagina di login
+                } else {
+                    alert('Errore durante il logout');
+                }
+            })
+            .catch(error => console.error('Errore:', error));
+        });
+
+        // Carica gli obiettivi all'inizio
+        loadUserGoals();
+    </script>
+</body>
+</html>

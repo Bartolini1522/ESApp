@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+	<link rel="stylesheet" href="css\styles.css">
+</head>
+<body>
+    <h1>Pannello di Amministrazione</h1>
+
+    <!-- Menu a tendina per selezionare un utente -->
+    <label for="userSelect">Seleziona un utente:</label>
+    <select id="userSelect">
+        <!-- Gli utenti verranno caricati qui dinamicamente -->
+    </select>
+
+    <!-- Form per aggiungere un nuovo obiettivo -->
+    <h2>Aggiungi un Obiettivo</h2>
+    <form id="addGoalForm">
+        <label for="goalName">Nome Obiettivo:</label>
+        <input type="text" id="goalName" required>
+        <br>
+        <label for="goalDescription">Descrizione Obiettivo:</label>
+        <textarea id="goalDescription" required></textarea>
+        <br>
+        <button type="submit">Aggiungi Obiettivo</button>
+    </form>
+
+    <!-- Sezione per visualizzare obiettivi completati/non completati -->
+    <h2>Obiettivi dell'utente selezionato</h2>
+    <ul id="goalsList"></ul>
+
+    <!-- Pulsante di Logout -->
+    <button id="logoutBtn">Logout</button>
+
+    <script>
+        // Carica gli utenti nel menu a tendina
+        function loadUsers() {
+            fetch('/api/users')
+                .then(response => response.json())
+                .then(data => {
+                    const userSelect = document.getElementById('userSelect');
+                    data.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = user.nome;
+                        userSelect.appendChild(option);
+                    });
+                });
+        }
+
+        // Carica gli obiettivi dell'utente selezionato
+        function loadGoals(userId) {
+            fetch(`/api/users/${userId}/obiettivi`)
+                .then(response => response.json())
+                .then(data => {
+                    const goalsList = document.getElementById('goalsList');
+                    goalsList.innerHTML = ''; // Pulisci la lista
+                    data.forEach(goal => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${goal.nome_obiettivo} - ${goal.stato}`;
+                        goalsList.appendChild(listItem);
+                    });
+                });
+        }
+
+        // Aggiungi un nuovo obiettivo per l'utente selezionato
+        document.getElementById('addGoalForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const userId = document.getElementById('userSelect').value;
+            const goalName = document.getElementById('goalName').value;
+            const goalDescription = document.getElementById('goalDescription').value;
+
+            fetch(`/api/users/${userId}/obiettivi`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nome_obiettivo: goalName,
+                    descrizione: goalDescription
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Obiettivo aggiunto con successo!');
+                loadGoals(userId); // Ricarica gli obiettivi
+            })
+            .catch(error => console.error('Errore:', error));
+        });
+
+        // Gestisci la selezione dell'utente
+        document.getElementById('userSelect').addEventListener('change', function () {
+            const userId = this.value;
+            loadGoals(userId); // Carica gli obiettivi per l'utente selezionato
+        });
+
+        // Funzione per fare il logout
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/login'; // Reindirizza alla pagina di login
+                } else {
+                    alert('Errore durante il logout');
+                }
+            })
+            .catch(error => console.error('Errore:', error));
+        });
+
+        // Carica gli utenti all'inizio
+        loadUsers();
+    </script>
+</body>
+</html>

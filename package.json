@@ -1,0 +1,21 @@
+{
+  "name": "ESApp",
+  "version": "1.0.0",
+  "description": "Descrizione del progetto",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "chai": "^4.3.6",
+    "chai-http": "^4.3.0",
+    "express": "^4.17.1",
+    "express-session": "^1.18.0",
+    "mysql2": "^2.3.3"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0"
+  }
+}
